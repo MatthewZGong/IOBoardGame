@@ -6,12 +6,10 @@ import {HexagonMap, ParallelogramMap} from "./game/hexaboard";
 function App() {
 
     return (
-        <div>
-            <Timer render={(time) => (
-                <HexGrid map={HexagonMap(5)} currentTime={time}/>
-                // <HexGrid map={ParallelogramMap(6, 7)}/>,
-            )}/>
-        </div>
+        <Timer render={(time) => (
+            <HexGrid map={HexagonMap(5)} currentTime={time}/>
+            // <HexGrid map={ParallelogramMap(6, 7)}/>,
+        )}/>
     );
 }
 
