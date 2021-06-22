@@ -4,9 +4,10 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import Canvas from './game/hexcanvas.js'
+import HexGrid from "./game/hexComponents";
 
 ReactDOM.render(
-    <Canvas/>,
+    <HexGrid/>,
     document.getElementById('root')
 );
 
