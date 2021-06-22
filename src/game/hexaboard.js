@@ -103,8 +103,9 @@ class Map{
         this.layout = new Layout(or, new Point(50,50), new Point(400,300));
     }
     parallelogram(width,length){
-        for(var q = 0; q < width; q++){
-            for(let r = 0; r< length; r++){
+
+        for(var q = -(width>>1); q < width>>1; q++){
+            for(let r = -(length>>1); r< length>>1; r++){
                 this.m.add(new Hex(q,r))
             }
         }
@@ -114,6 +115,14 @@ class Map{
             var r1 = Math.max(-radius, -q - radius);
             var r2 = Math.min(radius, -q + radius);
             for (let r = r1; r <= r2; r++) {
+                this.m.add(new Hex(q, r, -q-r));
+            }
+        }
+    }
+    rectangle(map_width, map_height){
+        for (var r = -(map_height>>1); r < map_height>>1; r++) {
+            var r_offset = r >> 1;  // or r>>1
+            for (var q = -r_offset-(map_width>>1); q < (map_width>>1) - r_offset; q++) {
                 this.m.add(new Hex(q, r, -q-r));
             }
         }
