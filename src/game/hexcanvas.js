@@ -1,5 +1,5 @@
-import React from 'react'
-
+import React from 'react';
+import Map from "./hexaboard";
 class Canvas extends React.Component {
 
     state = {
@@ -12,7 +12,12 @@ class Canvas extends React.Component {
         const { canvasWidth, canvasHeight } = this.state.canvasSize;
         this.canvashex.width = canvasWidth;
         this.canvashex.height = canvasHeight;
-        this.drawHex(this.canvashex, {x: 50, y: 50})
+        this.map = new Map()
+        this.map.hexagon(3)
+        this.map.m.forEach((value) => { 
+            this.drawHex(this.canvashex, this.map.layout.hexToPixel(value));
+        })
+        this.drawHex(this.canvashex, {x: 1, y: 1})
     }
 
     drawHex(canvasID, center) {
