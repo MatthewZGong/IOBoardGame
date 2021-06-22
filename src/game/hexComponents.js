@@ -12,6 +12,11 @@ class HexGrid extends React.Component {
         }
     }
 
+    clickEvent = (e) => {
+        console.log(e.pageX + ' ' + e.pageY);
+        console.log(this.props.currentTime);
+    }
+
     render() {
 
         const {hexCenters, hexDimensions} = getSVGContent(this.props.map.m, this.state.hexSize);
@@ -27,7 +32,8 @@ class HexGrid extends React.Component {
 
         return (
             <svg viewBox={svgViewBox} width={totalWidth} height={totalHeight}
-                 fill={"transparent"} stroke={"purple"} strokeWidth={1}>
+                 fill={"transparent"} stroke={"purple"} strokeWidth={1}
+                 onClick={this.clickEvent}>
                 {hexes}
             </svg>
         )
@@ -106,8 +112,16 @@ class HexTile extends React.Component {
     constructor(props) {
         super(props);
 
+        this.defaultColor = 'red'
+        this.hoverColor = 'yellow'
+        this.toggleColor = 'black'
+
+        this.defaultFill = 'transparent'
+
         this.state = {
-            color: 'red'
+            color: this.defaultColor,
+            toggle: false,
+            strokeWidth: 1
         }
     }
 
@@ -127,6 +141,29 @@ class HexTile extends React.Component {
         };
     }
 
+    mouseHoverEvent = () => {
+        this.setState({
+            fill: this.hoverColor,
+            strokeWidth: 2
+        })
+    }
+
+    mouseLeaveEvent = () => {
+        this.setState({
+            fill: this.defaultFill,
+            strokeWidth: 1
+        })
+    }
+
+    clickEvent = () => {
+        // set state with arrow function to avoid jumbled behavior with React's setState async batching
+        this.setState((state) => ({
+            toggle: !state.toggle,
+            color: state.toggle ? this.defaultColor : this.toggleColor
+        }))
+    }
+
+
     render() {
         let points = '';
         for (let point of this.getHexCornerCords()) {
@@ -134,8 +171,12 @@ class HexTile extends React.Component {
         }
 
         return (
-            <polygon points={points} stroke={this.state.color}
-                     onClick={() => this.setState({color: 'blue'})}/>
+            <polygon points={points} stroke={this.state.color} fill={this.state.fill}
+                     strokeWidth={this.state.strokeWidth}
+                     onClick={this.clickEvent}
+                     onMouseEnter={this.mouseHoverEvent}
+                     onMouseLeave={this.mouseLeaveEvent}
+            />
         )
     }
 }

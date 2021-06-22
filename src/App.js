@@ -1,25 +1,57 @@
-import logo from './logo.svg';
 import './App.css';
+import React from 'react'
+import HexGrid from "./game/hexComponents";
+import {HexagonMap, ParallelogramMap} from "./game/hexaboard";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+    return (
+        <div>
+            <Timer render={(time) => (
+                <HexGrid map={HexagonMap(5)} currentTime={time}/>
+                // <HexGrid map={ParallelogramMap(6, 7)}/>,
+            )}/>
+        </div>
+    );
 }
+
+class Timer extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            time: 0
+        }
+    }
+
+    getTime() {
+        return this.state.time
+    }
+
+    componentDidMount() {
+        this.timer = setInterval(() => this.tick(), 1000)
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.timer)
+    }
+
+    tick() {
+        this.setState((state) => ({
+            time: state.time + 1
+        }))
+    }
+
+
+    render() {
+        return (
+            <div>
+                Time since started: {this.state.time} seconds
+                {this.props.render(this.state)}
+            </div>
+        )
+    }
+}
+
 
 export default App;
