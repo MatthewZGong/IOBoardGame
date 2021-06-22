@@ -72,6 +72,17 @@ class Layout{
         // console.log("done")
         return new Point(x + origin.x ,y+ origin.y)
     }
+
+    pixelToHex(p) {
+        var or = this.orientation;
+        var size = this.size;
+        var origin = this.origin;
+        var pt = new Point((p.x - origin.x) / size.x, (p.y - origin.y) / size.y);
+        var q = or.b0 * pt.x + or.b1 * pt.y;
+        var r = or.b2 * pt.x + or.b3 * pt.y;
+        return new Hex(q, r, -q - r);
+    }
+
     hexCornerOffset(corner) {
         var or = this.orientation;
         var size = this.size;
