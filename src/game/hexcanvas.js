@@ -1,5 +1,5 @@
 import React from 'react';
-import Map from "./hexaboard";
+import {Map} from "./hexaboard";
 class Canvas extends React.Component {
 
     state = {

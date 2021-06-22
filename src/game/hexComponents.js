@@ -1,72 +1,118 @@
 import React from 'react'
-import Map from "./hexaboard";
+import {Orientation} from "./hexaboard";
 
 class HexGrid extends React.Component {
 
     constructor(props) {
         super(props);
-        this.hexSize = 50
-        this.hexOrigin = {x: 100, y: 130}
-        this.dimensions = {rows: 20, columns: 30}
-        this.canvasSize = {
-            canvasWidth: this.dimensions.columns * this.hexSize * 2,
-            canvasHeight: this.dimensions.rows * this.hexSize * 2
-        }
 
         this.state = {
-            radius: 3,
+            radius: 10,
             hexSize: 50
         }
     }
 
-
     render() {
 
-        const map = new Map()
-        map.hexagon(this.state.radius);
+        const {hexCenters, hexDimensions} = getSVGContent(this.props.map.m, this.state.hexSize);
+        const {totalWidth, totalHeight, leftEdge, topEdge} = hexDimensions;
 
-        let hexes = [];
-        for (let hexCor of map.m) {
-            const center = map.layout.hexToPixel(hexCor);
-            hexes.push(<HexTile hexSize={this.state.hexSize} center={center}
-            key={hexCor}/>);
-            console.log(center);
-        }
+        // example viewBox value: '0 0 25 25'
+        const svgViewBox = leftEdge + ' ' + topEdge + ' ' + totalWidth + ' ' + totalHeight
 
-        const hexWidth = 50 * 2;
-        const widthInSides = Math.sqrt(3)
-        const totalWidthInSides = (this.state.radius * 2 + 1) * widthInSides
-        const totalWidth = totalWidthInSides * this.state.hexSize;
-        const totalHeightInSides = this.state.radius * 3 + 2;
-        const totalHeight = totalHeightInSides * this.state.hexSize;
+        let hexes = hexCenters.map((hexInfo) => {
+            return (<HexTile hexSize={this.state.hexSize} center={hexInfo.center}
+                             key={hexInfo.hexCor}/>)
+        })
 
         return (
-            <svg width={totalWidth} height={totalHeight}
+            <svg viewBox={svgViewBox} width={totalWidth} height={totalHeight}
                  fill={"transparent"} stroke={"purple"} strokeWidth={1}>
                 {hexes}
             </svg>
         )
     }
-
 }
+
+function getSVGContent(hexCords, hexSize) {
+
+    const or = new Orientation(
+        Math.sqrt(3.0),
+        Math.sqrt(3.0) / 2.0,
+        0.0,
+        3.0 / 2.0,
+        Math.sqrt(3.0) / 3.0,
+        -1.0 / 3.0,
+        0.0,
+        2.0 / 3.0,
+        0.5
+    );
+
+    const size = {
+        x: hexSize,
+        y: hexSize
+    }
+
+    const halfWidth = hexSize * Math.sqrt(3) / 2;
+    const halfHeight = hexSize;
+
+
+    let dimensions = {
+        minX: 0,
+        minY: 0,
+        maxX: 0,
+        maxY: 0
+    }
+
+    let hexCenters = [];
+    for (let hexCor of hexCords) {
+        const center = hexToPixel(hexCor, or, size);
+        hexCenters.push({
+            center: center,
+            hexCor: hexCor
+        });
+
+        if (center.x - halfWidth < dimensions.minX) dimensions.minX = center.x - halfWidth
+        if (center.y - halfHeight < dimensions.minY) dimensions.minY = center.y - halfHeight
+        if (center.x + halfWidth > dimensions.maxX) dimensions.maxX = center.x + halfWidth
+        if (center.y + halfHeight > dimensions.maxY) dimensions.maxY = center.y + halfHeight
+    }
+
+    return {
+        hexCenters: hexCenters,
+        hexDimensions: {
+            totalWidth: dimensions.maxX - dimensions.minX,
+            totalHeight: dimensions.maxY - dimensions.minY,
+            leftEdge: dimensions.minX,
+            topEdge: dimensions.minY
+        }
+    }
+}
+
+
+function hexToPixel(hex, or, size){
+    const vec = hex.vector
+    const x = (or.f0 * vec[0] + or.f1 * vec[1]) * size.x;
+    const y = (or.f2 * vec[0] + or.f3 * vec[1]) * size.y;
+    return {
+        x: x,
+        y: y
+    }
+}
+
 
 class HexTile extends React.Component {
 
     constructor(props) {
         super(props);
 
-        this.height = props.hexSize * 2;
-        this.width = props.hexSize * Math.sqrt(3);
-
         this.state = {
             color: 'red'
         }
-
     }
 
     getHexCornerCords() {
-        let points = [0, 1, 2, 3, 4, 5].map((i) => this.getHexCornerCord(i))
-        return points
+        return [0, 1, 2, 3, 4, 5].map((i) => this.getHexCornerCord(i))
     }
 
     getHexCornerCord(i) {
@@ -75,11 +121,10 @@ class HexTile extends React.Component {
 
         let x = this.props.center.x + this.props.hexSize * Math.cos(angle_rad);
         let y = this.props.center.y + this.props.hexSize * Math.sin(angle_rad);
-        return this.Point(x, y);
-    }
-
-    Point(x, y) {
-        return {x: x, y: y}
+        return {
+            x: x,
+            y: y
+        };
     }
 
     render() {

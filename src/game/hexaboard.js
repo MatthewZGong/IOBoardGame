@@ -60,16 +60,12 @@ class Layout{
     }
 
     hexToPixel(hex){
-        var or = this.orientation 
-        // console.log(or)
-        var size = this.size
-        // console.log(size)
-        var origin = this.origin 
-        // console.log(origin)
-        var vec = hex.vector
-        var x = (or.f0 * vec[0] + or.f1 * vec[1]) * size.x;
-        var y = (or.f2 * vec[0] + or.f3 * vec[1]) * size.y;
-        // console.log("done")
+        const or = this.orientation
+        const size = this.size
+        const origin = this.origin
+        const vec = hex.vector
+        const x = (or.f0 * vec[0] + or.f1 * vec[1]) * size.x;
+        const y = (or.f2 * vec[0] + or.f3 * vec[1]) * size.y;
         return new Point(x + origin.x ,y+ origin.y)
     }
 
@@ -107,11 +103,11 @@ class Point{
     }
 }
 
-class Map{ 
+class Map{
     constructor(){
         this.m = new Set() 
         var or = new Orientation(Math.sqrt(3.0), Math.sqrt(3.0) / 2.0, 0.0, 3.0 / 2.0, Math.sqrt(3.0) / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0, 0.5);
-        this.layout = new Layout(or, new Point(50,50), new Point(400,300));
+        this.layout = new Layout(or, new Point(50, 50), new Point(400, 400));
     }
     parallelogram(width,length){
 
@@ -154,9 +150,22 @@ class Orientation {
     }
 }
 
+
+function HexagonMap(radius) {
+    let map = new Map();
+    map.hexagon(radius);
+    return map
+}
+
+function ParallelogramMap(width, length) {
+    let map = new Map();
+    map.parallelogram(width, length);
+    return map;
+}
+
 var flat_top = new Orientation(3.0 / 2.0, 0.0, Math.sqrt(3.0) / 2.0, Math.sqrt(3.0), 2.0 / 3.0, 0.0, -1.0 / 3.0, Math.sqrt(3.0) / 3.0, 0.0);
 var pointy_top = new Orientation(Math.sqrt(3.0), Math.sqrt(3.0) / 2.0, 0.0, 3.0 / 2.0, Math.sqrt(3.0) / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0, 0.5);
-var test_map = new Map(); 
+var test_map = new Map();
 var test = new Layout(flat_top, new Point(50,50), new Point(400,300));
 test_map.hexagon(5)
 test_map.m.forEach((value) => { 
@@ -168,5 +177,4 @@ test_map.m.forEach((value) => {
 // console.log( test.getPolygonCorners(test_hex));
 // console.log( test.hexToPixel(test_hex));s
 
-
-export{Map as default}
+export {Map, Layout, Orientation, Point, HexagonMap, ParallelogramMap}
