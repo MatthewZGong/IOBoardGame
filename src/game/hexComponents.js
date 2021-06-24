@@ -25,22 +25,22 @@ class HexGrid extends React.Component {
         // example viewBox value: '0 0 25 25'
         const svgViewBox = leftEdge + ' ' + topEdge + ' ' + totalWidth + ' ' + totalHeight
 
-        let hexes = hexCenters.map((hexInfo) => {
+        let hexTiles = hexCenters.map((hexInfo) => {
             return (<HexTile hexSize={this.state.hexSize} center={hexInfo.center}
-                             key={hexInfo.hexCor}/>)
+                             key={hexInfo.hex}/>)
         })
 
         return (
             <svg viewBox={svgViewBox} width={totalWidth} height={totalHeight}
                  fill={"transparent"} stroke={"purple"} strokeWidth={1}
                  onClick={this.clickEvent}>
-                {hexes}
+                {hexTiles}
             </svg>
         )
     }
 }
 
-function getSVGContent(hexCords, hexSize) {
+function getSVGContent(hexes, hexSize) {
 
     const or = new Orientation(
         Math.sqrt(3.0),
@@ -71,11 +71,11 @@ function getSVGContent(hexCords, hexSize) {
     }
 
     let hexCenters = [];
-    for (let hexCor of hexCords) {
-        const center = hexToPixel(hexCor, or, size);
+    for (let hex of hexes) {
+        const center = hexToPixel(hex, or, size);
         hexCenters.push({
             center: center,
-            hexCor: hexCor
+            hex: hex
         });
 
         if (center.x - halfWidth < dimensions.minX) dimensions.minX = center.x - halfWidth
