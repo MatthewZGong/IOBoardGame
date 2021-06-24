@@ -7,6 +7,9 @@ class Hex{
     // constructor(q,r){
     //     this.vector = [q,r,-q-r];
     // }
+    setCharacter(character){
+        this.character = character
+    }
     equals(otherHex){
         return this.vector == otherHex.vector;
     }  
@@ -103,7 +106,7 @@ class Point{
     }
 }
 
-class Map{
+class MapClient{
     constructor(){
         this.m = new Set() 
         var or = new Orientation(Math.sqrt(3.0), Math.sqrt(3.0) / 2.0, 0.0, 3.0 / 2.0, Math.sqrt(3.0) / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0, 0.5);
@@ -134,7 +137,20 @@ class Map{
             }
         }
     }
+    hexToPixel(hex){
+        return this.layout.hexToPixel(hex); 
+    }
+    pixelToHex(point){
+        return this.layout.pixelToHex(point);
+    }
+    *[Symbol.iterator]() {
+        for(let hexa of this.m){
+            yield hexa
+        }
+    }
 }
+
+
 
 class Orientation {
     constructor(f0, f1, f2, f3, b0, b1, b2, b3, start_angle) {
@@ -152,29 +168,33 @@ class Orientation {
 
 
 function HexagonMap(radius) {
-    let map = new Map();
+    let map = new MapClient();
     map.hexagon(radius);
     return map
 }
 
 function ParallelogramMap(width, length) {
-    let map = new Map();
+    let map = new MapClient();
     map.parallelogram(width, length);
     return map;
 }
 
 var flat_top = new Orientation(3.0 / 2.0, 0.0, Math.sqrt(3.0) / 2.0, Math.sqrt(3.0), 2.0 / 3.0, 0.0, -1.0 / 3.0, Math.sqrt(3.0) / 3.0, 0.0);
 var pointy_top = new Orientation(Math.sqrt(3.0), Math.sqrt(3.0) / 2.0, 0.0, 3.0 / 2.0, Math.sqrt(3.0) / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0, 0.5);
-var test_map = new Map();
+var test_map = new MapClient();
 var test = new Layout(flat_top, new Point(50,50), new Point(400,300));
 test_map.hexagon(5)
-test_map.m.forEach((value) => { 
-    console.log(test.hexToPixel(value) )
-})
+console.log("hi")
+for(let test of test_map){
+    console.log(test)
+}
+// test_map.m.forEach((value) => { 
+//     console.log(test.hexToPixel(value) )
+// })
 
 // var test_hex = new Hex(0,0);
 // console.log(test_hex)
 // console.log( test.getPolygonCorners(test_hex));
 // console.log( test.hexToPixel(test_hex));s
 
-export {Map, Layout, Orientation, Point, HexagonMap, ParallelogramMap}
+export {MapClient, Layout, Orientation, Point, HexagonMap, ParallelogramMap}
