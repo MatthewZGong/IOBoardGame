@@ -3,6 +3,7 @@ class Hex{
     static directions =[ new Hex(1, 0, -1), new Hex(1, -1, 0), new Hex(0, -1, 1), new Hex(-1, 0, 1), new Hex(-1, 1, 0), new Hex(0, 1, -1)]
     constructor(q,r,s = -q-r){
         this.vector = [q,r,s];
+        this.object = null; 
     }
     // constructor(q,r){
     //     this.vector = [q,r,-q-r];

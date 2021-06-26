@@ -12,7 +12,7 @@ class Canvas extends React.Component {
         const { canvasWidth, canvasHeight } = this.state.canvasSize;
         this.canvashex.width = canvasWidth;
         this.canvashex.height = canvasHeight;
-        this.map = new Map()
+        this.map = new MapClient()
         this.map.rectangle(5,5)
         this.map.m.forEach((value) => { 
             this.drawHex(this.canvashex, this.map.layout.hexToPixel(value));
