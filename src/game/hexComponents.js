@@ -1,33 +1,75 @@
 import React from 'react'
 import {Orientation} from "./hexaboard";
+import {socket} from "../socker/socketContext";
 
 class HexGrid extends React.Component {
 
     constructor(props) {
         super(props);
 
+        this.currentlyHovering = undefined
+
         this.state = {
-            radius: 10,
-            hexSize: 50
+            hexSize: 50,
+            coloredTiles: new Set()
         }
     }
 
     clickEvent = (e) => {
         console.log(e.pageX + ' ' + e.pageY);
-        console.log(this.props.currentTime);
+        if (this.props.currentTime) {
+            console.log(this.props.currentTime);
+        }
+    }
+
+    onTileEnter = (tile) => {
+
+        this.currentlyHovering = tile
+
+        socket.emit('request-map.distance', tile, 2,
+            (requested_hexes) => {
+                let coloredTiles = new Set()
+                for (let hex of requested_hexes) {
+                    coloredTiles.add(hex.vector.toString())
+                }
+                if (vecEqual(this.currentlyHovering, tile)) {
+                    this.setState({
+                        coloredTiles: coloredTiles
+                    })
+                }
+            }
+        )
+    }
+
+    onTileLeave = (tile) => {
+        if (this.currentlyHovering && vecEqual(this.currentlyHovering, tile)) {
+            this.currentlyHovering = undefined
+            this.setState({
+                coloredTiles: new Set()
+            })
+        }
     }
 
     render() {
 
-        const {hexCenters, hexDimensions} = getSVGContent(this.props.map.m, this.state.hexSize);
+        const {hexCenters, hexDimensions} = getSVGContent(this.props.hexes, this.state.hexSize);
         const {totalWidth, totalHeight, leftEdge, topEdge} = hexDimensions;
 
         // example viewBox value: '0 0 25 25'
         const svgViewBox = leftEdge + ' ' + topEdge + ' ' + totalWidth + ' ' + totalHeight
 
         let hexTiles = hexCenters.map((hexInfo) => {
+
+            const tile = hexInfo.hex.vector
+
+            const fillColor = this.state.coloredTiles && this.state.coloredTiles.has(tile.toString()) ?
+                'yellow' : 'transparent';
+
             return (<HexTile hexSize={this.state.hexSize} center={hexInfo.center}
-                             key={hexInfo.hex}/>)
+                             fill={fillColor}
+                             onEnter={() => this.onTileEnter(tile)}
+                             onLeave={() => this.onTileLeave(tile)}
+                             key={tile}/>)
         })
 
         return (
@@ -39,6 +81,21 @@ class HexGrid extends React.Component {
         )
     }
 }
+
+
+function vecEqual(vec1, vec2) {
+    if (!vec1 || !vec2) {
+        return false
+    }
+
+    for (let i = 0; i < 3; i++) {
+        if (vec1[i] !== vec2[i]) {
+            return false
+        }
+    }
+    return true
+}
+
 
 function getSVGContent(hexes, hexSize) {
 
@@ -113,10 +170,9 @@ class HexTile extends React.Component {
         super(props);
 
         this.defaultColor = 'red'
-        this.hoverColor = 'yellow'
         this.toggleColor = 'black'
 
-        this.defaultFill = 'transparent'
+        this.hoverColor = 'yellow'
 
         this.state = {
             color: this.defaultColor,
@@ -142,17 +198,11 @@ class HexTile extends React.Component {
     }
 
     mouseHoverEvent = () => {
-        this.setState({
-            fill: this.hoverColor,
-            strokeWidth: 2
-        })
+        this.props.onEnter()
     }
 
     mouseLeaveEvent = () => {
-        this.setState({
-            fill: this.defaultFill,
-            strokeWidth: 1
-        })
+        this.props.onLeave()
     }
 
     clickEvent = () => {
@@ -171,7 +221,7 @@ class HexTile extends React.Component {
         }
 
         return (
-            <polygon points={points} stroke={this.state.color} fill={this.state.fill}
+            <polygon points={points} stroke={this.state.color} fill={this.props.fill}
                      strokeWidth={this.state.strokeWidth}
                      onClick={this.clickEvent}
                      onMouseEnter={this.mouseHoverEvent}

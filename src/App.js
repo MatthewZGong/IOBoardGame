@@ -1,23 +1,55 @@
 import './App.css';
 import React from 'react'
 import HexGrid from "./game/hexComponents";
-import {HexagonMap, ParallelogramMap} from "./game/hexaboard";
-
-import { io } from 'socket.io-client'
+import {socket} from "./socker/socketContext";
 
 
-const socket = io('http://localhost:3000')
+class App extends React.Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            hexes: undefined,
+        }
+    }
+
+    componentDidMount() {
+
+        socket.on('connect', () => {
+            socket.emit('request-map', (hexes) => {
+                this.setState({
+                    hexes: hexes
+                })
+            })
+        });
+
+    }
+
+    componentWillUnmount() {
+        socket.off('connect')
+    }
 
 
-function App() {
+    render() {
 
-    return (
-        <Timer render={(time) => (
-            <HexGrid map={HexagonMap(5)} currentTime={time}/>
-            // <HexGrid map={ParallelogramMap(6, 7)}/>,
-        )}/>
-    );
+        const grid_component = (time) => {
+
+            if (this.state.hexes) {
+                return (
+                    <HexGrid hexes={this.state.hexes} currentTime={time}/>
+                )
+            } else {
+                return <h1>Waiting for map to load...</h1>
+            }
+        }
+
+        return (
+            <Timer render={grid_component}/>
+        )
+    }
 }
+
 
 class Timer extends React.Component {
 
