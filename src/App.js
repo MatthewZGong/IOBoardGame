@@ -14,37 +14,43 @@ class App extends React.Component {
         }
     }
 
-    componentDidMount() {
+    updateMap = () => {
+        socket.emit('request-map', (hexes, allyPositionsList, enemyPositionsList) => {
+            let allyPositions = new Set()
+            let enemyPositions = new Set()
 
-        socket.on('connect', () => {
-            socket.emit('request-map', (hexes, allyPositionsList, enemyPositionsList) => {
-                let allyPositions = new Set()
-                let enemyPositions = new Set()
-
-                function addPos(array) {
-                    function stringify(pos) {
-                        array.add(pos.toString())
-                    }
-                    return stringify
+            function addPos(array) {
+                function stringify(pos) {
+                    array.add(pos.toString())
                 }
+                return stringify
+            }
 
-                allyPositionsList.forEach(addPos(allyPositions))
-                enemyPositionsList.forEach(addPos(enemyPositions))
+            allyPositionsList.forEach(addPos(allyPositions))
+            enemyPositionsList.forEach(addPos(enemyPositions))
 
-                this.setState({
-                    board: {
-                        hexes: hexes,
-                        allyPositions: allyPositions,
-                        enemyPositions: enemyPositions
-                    }
-                })
+            this.setState({
+                board: {
+                    hexes: hexes,
+                    allyPositions: allyPositions,
+                    enemyPositions: enemyPositions
+                }
             })
-        });
+        })
+    }
 
+    componentDidMount() {
+        socket.on('connect', () => {
+            this.updateMap()
+        });
     }
 
     componentWillUnmount() {
         socket.off('connect')
+    }
+
+    moveChar = (char_id, tile) => {
+        socket.emit('move-char', char_id, tile, this.updateMap)
     }
 
 
@@ -57,6 +63,7 @@ class App extends React.Component {
                 return (
                     <HexGrid hexes={board.hexes}
                              allyPositions={board.allyPositions} enemyPositions={board.enemyPositions}
+                             moveChar={this.moveChar}
                              currentTime={time}/>
                 )
             } else {
