@@ -10,16 +10,33 @@ class App extends React.Component {
         super(props);
 
         this.state = {
-            hexes: undefined,
+            board: undefined
         }
     }
 
     componentDidMount() {
 
         socket.on('connect', () => {
-            socket.emit('request-map', (hexes) => {
+            socket.emit('request-map', (hexes, allyPositionsList, enemyPositionsList) => {
+                let allyPositions = new Set()
+                let enemyPositions = new Set()
+
+                function addPos(array) {
+                    function stringify(pos) {
+                        array.add(pos.toString())
+                    }
+                    return stringify
+                }
+
+                allyPositionsList.forEach(addPos(allyPositions))
+                enemyPositionsList.forEach(addPos(enemyPositions))
+
                 this.setState({
-                    hexes: hexes
+                    board: {
+                        hexes: hexes,
+                        allyPositions: allyPositions,
+                        enemyPositions: enemyPositions
+                    }
                 })
             })
         });
@@ -35,9 +52,12 @@ class App extends React.Component {
 
         const grid_component = (time) => {
 
-            if (this.state.hexes) {
+            if (this.state.board) {
+                const board = this.state.board
                 return (
-                    <HexGrid hexes={this.state.hexes} currentTime={time}/>
+                    <HexGrid hexes={board.hexes}
+                             allyPositions={board.allyPositions} enemyPositions={board.enemyPositions}
+                             currentTime={time}/>
                 )
             } else {
                 return <h1>Waiting for map to load...</h1>

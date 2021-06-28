@@ -7,47 +7,59 @@ class HexGrid extends React.Component {
     constructor(props) {
         super(props);
 
-        this.currentlyHovering = undefined
+        this.currentlySelected = undefined
+
+        let colorMap = {}
+        props.hexes.forEach((hex) => {
+            colorMap[hex.vector.toString()] = {
+                hex: hex
+            }
+        })
 
         this.state = {
             hexSize: 50,
-            coloredTiles: new Set()
+            colorMap: colorMap
         }
     }
 
-    clickEvent = (e) => {
-        console.log(e.pageX + ' ' + e.pageY);
-        if (this.props.currentTime) {
-            console.log(this.props.currentTime);
+    updateColorMap = (tile, name, value) => {
+        const colorMap = this.state.colorMap
+        colorMap[tile.toString()][name] = value
+        this.setState({
+            colorMap: colorMap
+        })
+    }
+
+    getColorMapValue = (tile, name) => {
+        return this.state.colorMap[tile.toString()][name]
+    }
+
+    charClickEvent = (tile) => {
+
+        if (this.currentlySelected) {
+            this.fillRange(this.currentlySelected, undefined)
         }
+
+        const nextSelected = vecEqual(this.currentlySelected, tile) ? undefined : tile
+        if (nextSelected) {
+            this.fillRange(nextSelected, 'gray')
+        }
+
+        this.currentlySelected = nextSelected
     }
 
-    onTileEnter = (tile) => {
-
-        this.currentlyHovering = tile
-
-        socket.emit('request-map.distance', tile, 2,
-            (requested_hexes) => {
-                let coloredTiles = new Set()
-                for (let hex of requested_hexes) {
-                    coloredTiles.add(hex.vector.toString())
+    fillRange(tile, color) {
+        const char_id = this.props.allyPositions.has(tile.toString()) ? 1 : 2
+        socket.emit('request-map.char-range', char_id, // 1 is a hardcoded char id
+            (hexes) => {
+                const colorMap = this.state.colorMap
+                for (let hex of hexes) {
+                    colorMap[hex.vector.toString()]['fill'] = color
                 }
-                if (vecEqual(this.currentlyHovering, tile)) {
-                    this.setState({
-                        coloredTiles: coloredTiles
-                    })
-                }
-            }
-        )
-    }
-
-    onTileLeave = (tile) => {
-        if (this.currentlyHovering && vecEqual(this.currentlyHovering, tile)) {
-            this.currentlyHovering = undefined
-            this.setState({
-                coloredTiles: new Set()
+                this.setState({
+                    colorMap: colorMap
+                })
             })
-        }
     }
 
     render() {
@@ -62,13 +74,18 @@ class HexGrid extends React.Component {
 
             const tile = hexInfo.hex.vector
 
-            const fillColor = this.state.coloredTiles && this.state.coloredTiles.has(tile.toString()) ?
-                'yellow' : 'transparent';
+            const isAllyTile = this.props.allyPositions.has(tile.toString())
+            const isEnemyTile = this.props.enemyPositions.has(tile.toString())
+            let fillColor =  isAllyTile ? 'lime' : isEnemyTile ? 'blue' : undefined
+
+            const forceColor = this.getColorMapValue(tile, 'fill')
+            if (!fillColor && forceColor) {
+                fillColor = forceColor
+            }
 
             return (<HexTile hexSize={this.state.hexSize} center={hexInfo.center}
                              fill={fillColor}
-                             onEnter={() => this.onTileEnter(tile)}
-                             onLeave={() => this.onTileLeave(tile)}
+                             onClick={isAllyTile || isEnemyTile ? () => this.charClickEvent(tile) : undefined}
                              key={tile}/>)
         })
 
@@ -169,13 +186,13 @@ class HexTile extends React.Component {
     constructor(props) {
         super(props);
 
-        this.defaultColor = 'red'
+        this.lineColor = 'red'
         this.toggleColor = 'black'
 
-        this.hoverColor = 'yellow'
+        this.fillColor = 'transparent'
 
         this.state = {
-            color: this.defaultColor,
+            color: this.lineColor,
             toggle: false,
             strokeWidth: 1
         }
@@ -198,18 +215,20 @@ class HexTile extends React.Component {
     }
 
     mouseHoverEvent = () => {
-        this.props.onEnter()
+        this.fillColor = 'yellow'
+        if (!this.props.fill) this.forceUpdate()
     }
 
     mouseLeaveEvent = () => {
-        this.props.onLeave()
+        this.fillColor = 'transparent'
+        if (!this.props.fill) this.forceUpdate()
     }
 
     clickEvent = () => {
         // set state with arrow function to avoid jumbled behavior with React's setState async batching
         this.setState((state) => ({
             toggle: !state.toggle,
-            color: state.toggle ? this.defaultColor : this.toggleColor
+            color: state.toggle ? this.lineColor : this.toggleColor
         }))
     }
 
@@ -221,9 +240,9 @@ class HexTile extends React.Component {
         }
 
         return (
-            <polygon points={points} stroke={this.state.color} fill={this.props.fill}
+            <polygon points={points} stroke={this.state.color} fill={this.props.fill || this.fillColor}
                      strokeWidth={this.state.strokeWidth}
-                     onClick={this.clickEvent}
+                     onClick={this.props.onClick || this.clickEvent}
                      onMouseEnter={this.mouseHoverEvent}
                      onMouseLeave={this.mouseLeaveEvent}
             />
