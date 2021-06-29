@@ -1,6 +1,7 @@
 import './App.css';
 import React from 'react'
 import HexGrid from "./game/hexComponents";
+import {ResponseArea} from "./game/textBoxes";
 import {socket} from "./socker/socketContext";
 
 
@@ -10,7 +11,9 @@ class App extends React.Component {
         super(props);
 
         this.state = {
-            board: undefined
+            board: undefined,
+            textBoxSize: 200,
+            actions: false
         }
     }
 
@@ -50,68 +53,56 @@ class App extends React.Component {
     }
 
     moveChar = (char_id, tile) => {
-        socket.emit('move-char', char_id, tile, this.updateMap)
+        socket.emit('move-char', char_id, tile, () => {
+            this.updateMap()
+            this.promptAction(char_id)
+        })
     }
 
 
-    render() {
-
-        const grid_component = (time) => {
-
-            if (this.state.board) {
-                const board = this.state.board
-                return (
-                    <HexGrid hexes={board.hexes}
-                             allyPositions={board.allyPositions} enemyPositions={board.enemyPositions}
-                             moveChar={this.moveChar}
-                             currentTime={time}/>
-                )
-            } else {
-                return <h1>Waiting for map to load...</h1>
+    promptAction = (char_id) => {
+        socket.emit('request-char.actions', char_id,
+            (actions) => {
+                this.setState({
+                    actions: actions
+                })
             }
-        }
-
-        return (
-            <Timer render={grid_component}/>
         )
     }
-}
 
-
-class Timer extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = {
-            time: 0
-        }
-    }
-
-    getTime() {
-        return this.state.time
-    }
-
-    componentDidMount() {
-        this.timer = setInterval(() => this.tick(), 1000)
-    }
-
-    componentWillUnmount() {
-        clearInterval(this.timer)
-    }
-
-    tick() {
-        this.setState((state) => ({
-            time: state.time + 1
-        }))
+    selectAction = (action) => {
+        this.setState({
+            actions: false
+        })
     }
 
 
     render() {
+        const board = this.state.board
+
+        const readyComponent = () => {
+
+            const hexGrid = (
+                <HexGrid hexes={board.hexes}
+                         allyPositions={board.allyPositions} enemyPositions={board.enemyPositions}
+                         moveChar={this.moveChar}
+                />
+            )
+
+            return (
+                <div>
+                    <div style={{marginTop: this.state.textBoxSize, position: "relative"}}>
+                        {hexGrid}
+                    </div>
+                    {this.state.actions ? <ResponseArea height={this.state.textBoxSize}
+                                                       choices={this.state.actions} onChoice={this.selectAction}/>
+                        : undefined}
+                </div>
+            )
+        }
+
         return (
-            <div>
-                Time since started: {this.state.time} seconds
-                {this.props.render(this.state)}
-            </div>
+            this.state.board ? readyComponent() : <h1>Waiting for map to load...</h1>
         )
     }
 }

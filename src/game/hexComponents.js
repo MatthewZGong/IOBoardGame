@@ -43,7 +43,6 @@ class HexGrid extends React.Component {
         } else {
             this.fillRange(tile, 'gray')
             this.currentlySelected = tile
-
         }
 
     }
@@ -101,26 +100,25 @@ class HexGrid extends React.Component {
             }
         }
 
-        const hexGroups = [
+        const hexGroups = <g id={"hexTiles"}>
             <HexGroup hexCenters={allies} hexSize={this.state.hexSize}
                       fill={LIME}
-                      onClick={this.charClickEvent}
-                      key={"allies"}/>,
+                      onClick={this.charClickEvent}/>
             <HexGroup hexCenters={enemies} hexSize={this.state.hexSize}
                       fill={BLUE}
-                      onClick={this.charClickEvent}
-                      key={"enemies"}/>,
+                      onClick={this.charClickEvent}/>
             <HexGroup hexCenters={colored} hexSize={this.state.hexSize}
-                      onClick={this.currentlySelected ? this.moveChar : undefined
-                      }
-                      fill={GRAY}
-                      key={"range"}/>,
-            <HexGroup hexCenters={regular} hexSize={this.state.hexSize}
-                      key={"background"}/>
-        ]
+                      onClick={this.currentlySelected ? this.moveChar : undefined}
+                      fill={GRAY}/>
+            <HexGroup hexCenters={regular} hexSize={this.state.hexSize}/>
+        </g>
 
         return (
             <svg viewBox={svgViewBox} width={totalWidth} height={totalHeight}
+                 style={{
+                     margin: 'auto',
+                     display: 'block'
+                 }}
                  onClick={this.clickEvent}>
                 {hexGroups}
             </svg>

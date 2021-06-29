@@ -5,9 +5,6 @@ class Hex{
         this.vector = [q,r,s];
         this.object = null; 
     }
-    // constructor(q,r){
-    //     this.vector = [q,r,-q-r];
-    // }
     setCharacter(character){
         this.character = character
     }
@@ -180,22 +177,5 @@ function ParallelogramMap(width, length) {
     return map;
 }
 
-var flat_top = new Orientation(3.0 / 2.0, 0.0, Math.sqrt(3.0) / 2.0, Math.sqrt(3.0), 2.0 / 3.0, 0.0, -1.0 / 3.0, Math.sqrt(3.0) / 3.0, 0.0);
-var pointy_top = new Orientation(Math.sqrt(3.0), Math.sqrt(3.0) / 2.0, 0.0, 3.0 / 2.0, Math.sqrt(3.0) / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0, 0.5);
-var test_map = new MapClient();
-var test = new Layout(flat_top, new Point(50,50), new Point(400,300));
-test_map.hexagon(5)
-console.log("hi")
-for(let test of test_map){
-    console.log(test)
-}
-// test_map.m.forEach((value) => { 
-//     console.log(test.hexToPixel(value) )
-// })
-
-// var test_hex = new Hex(0,0);
-// console.log(test_hex)
-// console.log( test.getPolygonCorners(test_hex));
-// console.log( test.hexToPixel(test_hex));s
 
 export {MapClient, Layout, Orientation, Point, HexagonMap, ParallelogramMap}
